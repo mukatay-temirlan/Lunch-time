@@ -24,14 +24,23 @@ const App: React.FC = () => {
   // App State
   const [currentUser, setCurrentUser] = useState<User>(FALLBACK_USER);
   const [votes, setVotes] = useState<VoteRecord[]>(MOCK_INITIAL_VOTES);
+  const [isTelegram, setIsTelegram] = useState(false);
   
   // Initialize Telegram Web App
   useEffect(() => {
+    // Check if running inside Telegram
     if (window.Telegram?.WebApp) {
       const webApp = window.Telegram.WebApp;
+      
+      // Notify Telegram we are ready
       webApp.ready();
+      
+      // Expand to full height
       webApp.expand();
+      
+      setIsTelegram(true);
 
+      // Get the user data from Telegram
       const tgUser = webApp.initDataUnsafe?.user;
       if (tgUser) {
         setCurrentUser({
@@ -108,14 +117,14 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-tg-secondaryBg pb-20 text-tg-text font-sans">
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
+      <header className="bg-tg-bg shadow-sm sticky top-0 z-10 border-b border-gray-100">
         <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
-          <h1 className="font-bold text-lg text-gray-800">LunchPoll</h1>
+          <h1 className="font-bold text-lg text-tg-text">LunchPoll</h1>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 mr-1 hidden sm:inline">Logged in as</span>
-            <div className="h-8 px-3 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+            {!isTelegram && <span className="text-xs text-tg-hint mr-1 hidden sm:inline">Debug User:</span>}
+            <div className="h-8 px-3 rounded-full bg-tg-button flex items-center justify-center text-tg-buttonText font-bold text-sm shadow-sm">
               {currentUser.name}
             </div>
           </div>
@@ -124,12 +133,14 @@ const App: React.FC = () => {
 
       <main className="max-w-md mx-auto px-4 py-6 space-y-4">
         
-        {/* Debug Controls (Visible for demo) */}
-        <TimeControls 
-          simulatedTime={currentTime} 
-          setSimulatedTime={setCurrentTime}
-          resetTime={resetToRealTime}
-        />
+        {/* Debug Controls (Only visible if NOT in Telegram or if explicitly enabled for demo) */}
+        {!isTelegram && (
+          <TimeControls 
+            simulatedTime={currentTime} 
+            setSimulatedTime={setCurrentTime}
+            resetTime={resetToRealTime}
+          />
+        )}
 
         {/* Voting Card */}
         <VotingCard
